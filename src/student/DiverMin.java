@@ -1,12 +1,20 @@
 package student;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+
 import game.FindState;
 import game.FleeState;
+import game.Node;
+import game.NodeStatus;
 import game.SewerDiver;
 
 public class DiverMin extends SewerDiver {
 
-	/** Get to the ring in as few steps as possible. Once you get there, <br>
+	/**
+	 * Get to the ring in as few steps as possible. Once you get there, <br>
 	 * you must return from this function in order to pick<br>
 	 * it up. If you continue to move after finding the ring rather <br>
 	 * than returning, it will not count.<br>
@@ -29,24 +37,62 @@ public class DiverMin extends SewerDiver {
 	 *
 	 * A suggested first implementation that will always find the ring, but <br>
 	 * likely won't receive a large bonus multiplier, is a depth-first walk. <br>
-	 * Some modification is necessary to make the search better, in general. */
+	 * Some modification is necessary to make the search better, in general.
+	 */
 	@Override
 	public void find(FindState state) {
 		// TODO : Find the ring and return.
 		// DO NOT WRITE ALL THE CODE HERE. DO NOT MAKE THIS METHOD RECURSIVE.
 		// Instead, write your method elsewhere, with a good specification,
 		// and call it from this one.
+		List<Long> visited = new ArrayList<>();
+		dfs(null, state, visited);
 
 	}
 
-	/** Flee the sewer system before the steps are all used, trying to <br>
-	 * collect as many coins as possible along the way. Your solution must ALWAYS <br>
-	 * get out before the steps are all used, and this should be prioritized above<br>
+	/**
+	 * Visit every node reachable along a path of unvisited nodes from node u.
+	 * Precondition: u is not visited.
+	 */
+	public static void dfs(Long prevState, FindState state, List<Long> visited) {
+		// Base case
+		if (state.distanceToRing() == 0) {
+			return;
+		} else {
+			long u = state.currentLocation();
+			visited.add(u);
+
+			List<NodeStatus> neighbors = new ArrayList<>(state.neighbors());
+			Collections.sort(neighbors);
+
+			for (NodeStatus neighbor : neighbors) {
+				long n = neighbor.getId();
+
+				if (visited.contains(n) == false && state.distanceToRing() != 0) {
+					state.moveTo(n);
+					dfs(u, state, visited);
+				}
+
+			}
+			if (state.distanceToRing() != 0) {
+				state.moveTo(prevState);
+			}
+
+		}
+	}
+
+	/**
+	 * Flee the sewer system before the steps are all used, trying to <br>
+	 * collect as many coins as possible along the way. Your solution must ALWAYS
+	 * <br>
+	 * get out before the steps are all used, and this should be prioritized
+	 * above<br>
 	 * collecting coins.
 	 *
 	 * You now have access to the entire underlying graph, which can be accessed<br>
 	 * through FleeState. currentNode() and getExit() will return Node objects<br>
-	 * of interest, and getNodes() will return a collection of all nodes on the graph.
+	 * of interest, and getNodes() will return a collection of all nodes on the
+	 * graph.
 	 *
 	 * You have to get out of the sewer system in the number of steps given by<br>
 	 * getStepsRemaining(); for each move along an edge, this number is <br>
@@ -62,13 +108,30 @@ public class DiverMin extends SewerDiver {
 	 * Initially, there are enough steps to get from the starting point to the<br>
 	 * exit using the shortest path, although this will not collect many coins.<br>
 	 * For this reason, a good starting solution is to use the shortest path to<br>
-	 * the exit. */
+	 * the exit.
+	 */
+	// Maps each visited node to the number of times it has been visited
+	HashMap<Node, Integer> visited = new HashMap<>();
+
 	@Override
 	public void flee(FleeState state) {
 		// TODO: Get out of the sewer system before the steps are used up.
 		// DO NOT WRITE ALL THE CODE HERE. Instead, write your method elsewhere,
 		// with a good specification, and call it from this one.
+		dijkstras(state, visited);
+		return;
+	}
 
+	public void dijkstras(FleeState state, HashMap<Node, Integer> visited) {
+		List<Node> shortest = Paths.shortest(state.currentNode(), state.getExit());
+
+		for (Node n : shortest) {
+			if (state.currentNode().getNeighbors().contains(n)) {
+				state.moveTo(n);
+				visited.put(n, 0);
+			}
+		}
+		return;
 	}
 
 }
