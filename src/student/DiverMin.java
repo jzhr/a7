@@ -119,7 +119,6 @@ public class DiverMin extends SewerDiver {
 		// DO NOT WRITE ALL THE CODE HERE. Instead, write your method elsewhere,
 		// with a good specification, and call it from this one.
 		dijkstras(state, visited);
-		return;
 	}
 
 	public void dijkstras(FleeState state, HashMap<Node, Integer> visited) {
@@ -131,7 +130,6 @@ public class DiverMin extends SewerDiver {
 				visited.put(n, 0);
 			}
 		}
-		return;
 	}
 
 }
