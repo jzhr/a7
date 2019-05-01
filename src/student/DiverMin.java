@@ -65,14 +65,17 @@ public class DiverMin extends SewerDiver {
 			List<NodeStatus> neighbors = new ArrayList<>(state.neighbors());
 			Collections.sort(neighbors);
 
+			NodeStatus prevn = neighbors.get(0);
 			for (NodeStatus neighbor : neighbors) {
 				long n = neighbor.getId();
-
-				if (visited.contains(n) == false && state.distanceToRing() != 0) {
-					state.moveTo(n);
-					dfs(u, state, visited);
+				if (neighbor.getDistanceToTarget() <= prevn.getDistanceToTarget()) {
+					if (visited.contains(n) == false && state.distanceToRing() != 0) {
+						System.out.println(neighbor.getDistanceToTarget());
+						state.moveTo(n);
+						dfs(u, state, visited);
+					}
 				}
-
+				prevn = neighbor;
 			}
 			if (state.distanceToRing() != 0) {
 				state.moveTo(prevState);
