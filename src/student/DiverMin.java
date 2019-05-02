@@ -39,6 +39,8 @@ public class DiverMin extends SewerDiver {
 	 * likely won't receive a large bonus multiplier, is a depth-first walk. <br>
 	 * Some modification is necessary to make the search better, in general.
 	 */
+	long startTime;
+
 	@Override
 	public void find(FindState state) {
 		// TODO : Find the ring and return.
@@ -141,22 +143,16 @@ public class DiverMin extends SewerDiver {
 
 	public void action(FleeState state, HashMap<Node, Integer> visited) {
 		Node coinClosest = closestCoin(state, getCoinNodes(state, visited));
-		System.out.println(coinClosest);
 		int stepsToNearestCoin = numSteps(Paths.shortest(state.currentNode(), coinClosest));
-		System.out.println(stepsToNearestCoin);
 		int stepsToExit = numSteps(Paths.shortest(coinClosest, state.getExit()));
-		System.out.println(stepsToExit);
 		int stepsToCoinAndExit = stepsToNearestCoin + stepsToExit;
-		System.out.println(stepsToCoinAndExit);
 
 		if (state.stepsLeft() >= stepsToCoinAndExit) {
-			System.out.println("boom");
 			dijkstras(state, visited, coinClosest);
 			visited.put(coinClosest, 0);
 			action(state, visited);
 
 		} else {
-			System.out.println("we out");
 			dijkstras(state, visited, state.getExit());
 		}
 	}
