@@ -55,7 +55,6 @@ public class DiverMin extends SewerDiver {
 	 * Precondition: u is not visited.
 	 */
 	public static void dfs(Long prevState, FindState state, List<Long> visited) {
-		// Base case
 		if (state.distanceToRing() == 0) {
 			return;
 		} else {
@@ -70,6 +69,7 @@ public class DiverMin extends SewerDiver {
 
 			for (NodeStatus neighbor : neighbors) {
 				long n = neighbor.getId();
+				// Greedy steps
 				if (neighbor.getDistanceToTarget() < mdist) {
 
 					if (visited.contains(n) == false && state.distanceToRing() != 0) {
@@ -94,7 +94,6 @@ public class DiverMin extends SewerDiver {
 
 			if (state.distanceToRing() != 0) {
 				state.moveTo(prevState);
-				System.out.println("prev call");
 			}
 
 		}
@@ -137,11 +136,37 @@ public class DiverMin extends SewerDiver {
 		// TODO: Get out of the sewer system before the steps are used up.
 		// DO NOT WRITE ALL THE CODE HERE. Instead, write your method elsewhere,
 		// with a good specification, and call it from this one.
-		dijkstras(state, visited);
+		action(state, visited);
 	}
 
-	public void dijkstras(FleeState state, HashMap<Node, Integer> visited) {
-		List<Node> shortest = Paths.shortest(state.currentNode(), state.getExit());
+	public void action(FleeState state, HashMap<Node, Integer> visited) {
+		Node coinClosest = closestCoin(state, getCoinNodes(state, visited));
+		System.out.println(coinClosest);
+		int stepsToNearestCoin = numSteps(Paths.shortest(state.currentNode(), coinClosest));
+		System.out.println(stepsToNearestCoin);
+		int stepsToExit = numSteps(Paths.shortest(coinClosest, state.getExit()));
+		System.out.println(stepsToExit);
+		int stepsToCoinAndExit = stepsToNearestCoin + stepsToExit;
+		System.out.println(stepsToCoinAndExit);
+
+		if (state.stepsLeft() >= stepsToCoinAndExit) {
+			System.out.println("boom");
+			dijkstras(state, visited, coinClosest);
+			visited.put(coinClosest, 0);
+			action(state, visited);
+
+		} else {
+			System.out.println("we out");
+			dijkstras(state, visited, state.getExit());
+		}
+	}
+
+	/**
+	 * Move to a node on the shortest path possible
+	 *
+	 */
+	public void dijkstras(FleeState state, HashMap<Node, Integer> visited, Node last) {
+		List<Node> shortest = Paths.shortest(state.currentNode(), last);
 
 		for (Node n : shortest) {
 			if (state.currentNode().getNeighbors().contains(n)) {
@@ -151,4 +176,46 @@ public class DiverMin extends SewerDiver {
 		}
 	}
 
+	/**
+	 * Returns the Node of the closest coin
+	 *
+	 */
+	public Node closestCoin(FleeState state, ArrayList<Node> coinNodes) {
+		int closestSteps = 1000;
+		Node result = null;
+
+		for (Node n : coinNodes) {
+			int stepsToCoin = numSteps(Paths.shortest(state.currentNode(), n));
+			if (stepsToCoin < closestSteps) {
+				closestSteps = stepsToCoin;
+				result = n;
+			}
+		}
+		return result;
+	}
+
+	/**
+	 * Returns an ArrayList of all nodes with coins on them
+	 *
+	 */
+	public ArrayList<Node> getCoinNodes(FleeState state, HashMap<Node, Integer> visited) {
+		ArrayList<Node> cn = new ArrayList();
+		ArrayList<Node> allnodes = new ArrayList<>(state.allNodes());
+
+		for (Node n : allnodes) {
+			if (n.getTile().coins() > 0 && !visited.containsKey(n)) {
+				cn.add(n);
+			}
+		}
+		return cn;
+	}
+
+	/**
+	 * Returns the number of steps to walk a given path as a List of nodes
+	 *
+	 */
+	public int numSteps(List<Node> p) {
+		return Paths.pathSum(p);
+
+	}
 }
