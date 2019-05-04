@@ -39,8 +39,6 @@ public class DiverMin extends SewerDiver {
 	 * likely won't receive a large bonus multiplier, is a depth-first walk. <br>
 	 * Some modification is necessary to make the search better, in general.
 	 */
-	long startTime;
-
 	@Override
 	public void find(FindState state) {
 		// TODO : Find the ring and return.
@@ -49,12 +47,11 @@ public class DiverMin extends SewerDiver {
 		// and call it from this one.
 		List<Long> visited = new ArrayList<>();
 		dfs(null, state, visited);
-
 	}
 
 	/**
-	 * Visit every node reachable along a path of unvisited nodes from node u.
-	 * Precondition: u is not visited.
+	 * A greedy dfs-walk to the ring, prioritizing neighboring nodes that have a
+	 * shorter Manhattan distance to the ring.
 	 */
 	public static void dfs(Long prevState, FindState state, List<Long> visited) {
 		if (state.distanceToRing() == 0) {
@@ -73,13 +70,13 @@ public class DiverMin extends SewerDiver {
 				long n = neighbor.getId();
 				// Greedy steps
 				if (neighbor.getDistanceToTarget() < mdist) {
-
 					if (visited.contains(n) == false && state.distanceToRing() != 0) {
 						mdist = neighbor.getDistanceToTarget();
 						prevn = neighbor;
 					}
 				}
 			}
+
 			if (prevn != null) {
 				state.moveTo(prevn.getId());
 				dfs(u, state, visited);
@@ -97,7 +94,6 @@ public class DiverMin extends SewerDiver {
 			if (state.distanceToRing() != 0) {
 				state.moveTo(prevState);
 			}
-
 		}
 	}
 
@@ -141,24 +137,30 @@ public class DiverMin extends SewerDiver {
 		action(state, visited);
 	}
 
+	/**
+	 * Moves to a tile w/ coin(s) (or exit) with Dijkstra's shortest path algorithm,
+	 * based upon how many steps are left and how many steps it takes to reach the
+	 * closest coin(s)
+	 *
+	 */
 	public void action(FleeState state, HashMap<Node, Integer> visited) {
 		Node coinClosest = closestCoin(state, getCoinNodes(state, visited));
-		int stepsToNearestCoin = numSteps(Paths.shortest(state.currentNode(), coinClosest));
+		int stepsToClosestCoin = numSteps(Paths.shortest(state.currentNode(), coinClosest));
 		int stepsToExit = numSteps(Paths.shortest(coinClosest, state.getExit()));
-		int stepsToCoinAndExit = stepsToNearestCoin + stepsToExit;
+		int stepsToCoinAndExit = stepsToClosestCoin + stepsToExit;
 
 		if (state.stepsLeft() >= stepsToCoinAndExit) {
 			dijkstras(state, visited, coinClosest);
 			visited.put(coinClosest, 0);
 			action(state, visited);
-
 		} else {
 			dijkstras(state, visited, state.getExit());
 		}
 	}
 
 	/**
-	 * Move to a node on the shortest path possible
+	 * Implmentation of Dijkstra's shortest path algorithm that moves to a node on
+	 * the shortest path possible
 	 *
 	 */
 	public void dijkstras(FleeState state, HashMap<Node, Integer> visited, Node last) {
@@ -173,7 +175,7 @@ public class DiverMin extends SewerDiver {
 	}
 
 	/**
-	 * Returns the Node of the closest coin
+	 * Returns the node of the closest coin(s)
 	 *
 	 */
 	public Node closestCoin(FleeState state, ArrayList<Node> coinNodes) {
@@ -191,7 +193,7 @@ public class DiverMin extends SewerDiver {
 	}
 
 	/**
-	 * Returns an ArrayList of all nodes with coins on them
+	 * Returns an ArrayList of all nodes with coin(s)
 	 *
 	 */
 	public ArrayList<Node> getCoinNodes(FleeState state, HashMap<Node, Integer> visited) {
@@ -207,7 +209,8 @@ public class DiverMin extends SewerDiver {
 	}
 
 	/**
-	 * Returns the number of steps to walk a given path as a List of nodes
+	 * Returns an integer representing the number of steps it takes to walk a given
+	 * path as a List of Nodes
 	 *
 	 */
 	public int numSteps(List<Node> p) {
